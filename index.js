@@ -1,3 +1,16 @@
+const getSuccessResponseBody = redirectUri => `
+    <HTML>
+    <HEAD>
+        <META HTTP-EQUIV="Refresh" CONTENT="0; URL=${redirectUri}">
+        <TITLE>Success</TITLE>
+    </HEAD>
+    <BODY>
+        <H1>Success Email Confirmation</H1>
+        <A HREF="http://www.google.com/">here</A>.
+    </BODY>
+    </HTML>
+`;
+
 exports.handler = (event, context, callback) => {
     const err = null;
     
@@ -22,10 +35,10 @@ exports.handler = (event, context, callback) => {
     callback(
         null, 
         {
-            statusCode: err ? "400" : "200",
-            body: err ? err : JSON.stringify("ok"),
+            statusCode: err ? "400" : "301",
+            body: err ? err : getSuccessResponseBody(redirectUri),
             headers: {
-                "Content-Type": "application/json",
+                "Content-Type": err ? "application/json" : "text/html; charset=UTF-8",
             },
         }
     );
