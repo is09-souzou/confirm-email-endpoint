@@ -1,3 +1,6 @@
+const https = require('https');
+
+const cognitoAuthUri = "https://portal-development-test-1.auth.ap-northeast-1.amazoncognito.com/confirmUser";
 const getSuccessResponseBody = redirectUri => `
     <HTML>
     <HEAD>
@@ -21,8 +24,6 @@ exports.handler = (event, context, callback) => {
         redirect_uri     : redirectUri
     } = event.queryStringParameters;
     
-    console.log(clientId, userName, confirmationCode, redirectUri);
-    
     if (!clientId)
         err = "client_id param is required";
     if (!userName)
@@ -31,15 +32,48 @@ exports.handler = (event, context, callback) => {
         err = "confirmation_code param is required";
     if (!redirectUri)
         err = "redirect_uri param is required";
+        
+    if (err) {
+        callback(
+            null, 
+            {
+                statusCode: "400",
+                body: JSON.stringify({ error: err }),
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+        return;
+    }
     
-    callback(
-        null, 
-        {
-            statusCode: err ? "400" : "301",
-            body: err ? err : getSuccessResponseBody(redirectUri),
-            headers: {
-                "Content-Type": err ? "application/json" : "text/html; charset=UTF-8",
-            },
+    https.get(
+        `${cognitoAuthUri}?client_id=${clientId}&user_name=${userName}&confirmation_code=${confirmationCode}`,
+        res => {
+            callback(
+                null, 
+                {
+                    statusCode: "301",
+                    body: getSuccessResponseBody(redirectUri),
+                    headers: {
+                        "Content-Type": "text/html; charset=UTF-8",
+                    },
+                }
+            );
+            return;
         }
-    );
+    ).on("error", e => {
+        console.error(e);
+        callback(
+            null, 
+            {
+                statusCode: "400",
+                body: JSON.stringify({ error: e.message }),
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+        return;
+    });
 };
