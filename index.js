@@ -1,7 +1,5 @@
 const https = require('https');
 
-const cognitoAuthUri = "https://const https = require('https');
-
 const cognitoAuthUri = "https://souzou.auth.ap-northeast-1.amazoncognito.com/confirmUser";
 const getSuccessResponseBody = redirectUri => `
     <HTML>
